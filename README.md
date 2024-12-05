@@ -6,7 +6,7 @@ Lib to abstract the pdftotext cli library
 ## Preconditions
 
 For this library it is necessary that `pdftotext` is installed in the version above `24.11.x - 25.x.x`. 
-With homebrew it is possible to install it via `brew install poppler` [https://formulae.brew.sh/formula/poppler](Homebrew Poppler).
+With homebrew it is possible to install it via `brew install poppler` [Homebrew Poppler](https://formulae.brew.sh/formula/poppler).
 
 ## Usage
 
