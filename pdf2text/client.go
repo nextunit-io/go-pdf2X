@@ -13,7 +13,7 @@ import (
 	"github.com/nextunit-io/go-tools/tools"
 )
 
-type client struct {
+type Client struct {
 	execClient  tools.ExecInterface
 	wrapperFunc func(cmd *exec.Cmd, stdout, stderr io.Writer) CmdWrapper
 }
@@ -60,7 +60,7 @@ const (
 )
 
 // check if the version of pdftotext is working with this library
-func (c client) checkVersion() error {
+func (c Client) checkVersion() error {
 	v, err := c.GetVersion()
 	if err != nil {
 		return fmt.Errorf("cannot check version of %s", client_cli)
@@ -85,7 +85,7 @@ func (c client) checkVersion() error {
 
 // Execute function. Some outputs are using the stdin, some the stderr.
 // Therefore the three return values are representating stdout, stderr, error
-func (c client) exec(args ...string) (*string, *string, error) {
+func (c Client) exec(args ...string) (*string, *string, error) {
 	cmd := tools.GetExecInstance().Command(client_cli, args...)
 
 	var outBuffer bytes.Buffer
@@ -118,7 +118,7 @@ func (c client) exec(args ...string) (*string, *string, error) {
 }
 
 // Get the content for a given file with options
-func (c client) Get(filePath string, options Options) (*string, error) {
+func (c Client) Get(filePath string, options Options) (*string, error) {
 	args := []string{}
 	if options.FirstPage != nil {
 		args = append(args, "-f", strconv.Itoa(*options.FirstPage))
@@ -201,7 +201,7 @@ func (c client) Get(filePath string, options Options) (*string, error) {
 }
 
 // Get the current pdftotext version
-func (c client) GetVersion() (*string, error) {
+func (c Client) GetVersion() (*string, error) {
 	_, out, err := c.exec("-v")
 
 	if err != nil {
@@ -222,7 +222,7 @@ func (c client) GetVersion() (*string, error) {
 }
 
 // Get the available encodings of pdftotext
-func (c client) GetEncodings() ([]string, error) {
+func (c Client) GetEncodings() ([]string, error) {
 	out, _, err := c.exec("-listenc")
 
 	if err != nil {
@@ -244,8 +244,8 @@ func SetWrapperFunc(fn func(cmd *exec.Cmd, stdout, stderr io.Writer) CmdWrapper)
 
 // Get the pdftotext client
 // Will return an error, if the installed CLI version is not valid
-func NewClient() (*client, error) {
-	c := &client{
+func NewClient() (*Client, error) {
+	c := &Client{
 		execClient:  tools.GetExecInstance(),
 		wrapperFunc: wrapCmd,
 	}
