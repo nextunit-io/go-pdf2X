@@ -1,11 +1,11 @@
-name: test
+name: pdf2text
 
 on:
   push:
     branches: [main]
     paths:
       - pdf2text/**
-      - .github/workflows/test.yml
+      - .github/workflows/pdf2text.yml
   workflow_dispatch:
 
 jobs:

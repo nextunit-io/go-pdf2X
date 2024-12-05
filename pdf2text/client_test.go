@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	gomock "github.com/nextunit-io/go-mock"
-	"github.com/nextunit-io/go-pdf2text/pdf2text"
+	"github.com/nextunit-io/go-pdf2X/pdf2text"
 	"github.com/nextunit-io/go-tools/tools"
 	"github.com/nextunit-io/go-tools/toolsmock"
 	"github.com/stretchr/testify/assert"

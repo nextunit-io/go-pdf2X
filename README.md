@@ -1,5 +1,6 @@
-# go-pdf2text
-[![Test status](https://github.com/nextunit-io/go-pdf2text/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/nextunit-io/go-pdf2text/actions/workflows/test.yml)
+# go-pdf2X
+[![PDF2Text](https://github.com/nextunit-io/go-pdf2X/actions/workflows/pdf2text.yml/badge.svg?branch=main)](https://github.com/nextunit-io/go-pdf2X/actions/workflows/pdf2text.yml)
+[![PDF2Html](https://github.com/nextunit-io/go-pdf2X/actions/workflows/pdf2html.yml/badge.svg?branch=main)](https://github.com/nextunit-io/go-pdf2X/actions/workflows/pdf2html.yml)
 
 Lib to abstract the pdftotext cli library
 
@@ -19,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/nextunit-io/go-pdf2text/pdf2text"
+	"github.com/nextunit-io/go-pdf2X/pdf2text"
 )
 
 func checkErr(err error) {

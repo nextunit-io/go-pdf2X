@@ -1,4 +1,4 @@
-module github.com/nextunit-io/go-pdf2text/pdf2text
+module github.com/nextunit-io/go-pdf2X/pdf2text
 
 go 1.23.3
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/nextunit-io/go-pdf2text/pdf2text"
+	"github.com/nextunit-io/go-pdf2X/pdf2text"
 )
 
 func checkErr(err error) {
