@@ -354,7 +354,7 @@ func TestGet(t *testing.T) {
 	setupTests()
 	client, _ := pdf2text.NewClient()
 
-	outputs := []string{}
+	outputs := []string{"test-1", "test-2", "test-3"}
 
 	for i, output := range outputs {
 		t.Run(fmt.Sprintf("Check for get outputs in loop %d", i), func(t *testing.T) {
