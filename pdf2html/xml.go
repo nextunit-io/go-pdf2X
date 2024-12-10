@@ -2,6 +2,7 @@ package pdf2html
 
 import (
 	"encoding/xml"
+	"fmt"
 	"sort"
 )
 
@@ -51,11 +52,9 @@ type PdfXmlText struct {
 type PdfXmlTableOption struct {
 	From, To int // In what area should the table be located
 
-	Columns               int   // How many columns should the table have
-	ColumnAveragePosition []int // The average left position per column, needs to be defined for every column
-
-	AllowedHeightVariance      int // Define what variance is allowed to be in the same line
-	ColumnAllowedWidthVariance int // Define what variance is allowed to be in the same column
+	Columns               int // How many columns should the table have
+	GetColumnFunc         func(text PdfXmlText) (int, error)
+	AllowedHeightVariance int // Define what variance is allowed to be in the same line
 
 	FilterFunc *func(entry PdfXmlTableEntry) bool // function to filter entries, if set and return true, entry will be added to the result
 }
@@ -72,6 +71,10 @@ type PdfXmlTableEntry struct {
 type PdfXmlTableEntryContent struct {
 	Text     *string // Normal text of the entry
 	BoldText *string // surrounded with <b> tags text
+}
+
+type GetColumnCalculationInRangesOption struct {
+	From, To int // lower and upper limit where the column should start
 }
 
 const maxInt int = int(^uint(0) >> 1)
@@ -117,29 +120,28 @@ func (p PdfXmlPage) ExtractTableContent(option PdfXmlTableOption) []*PdfXmlTable
 			entry = table[len(table)-1]
 		}
 
-		for i := 0; i < option.Columns; i++ {
-			if *text.Left-option.ColumnAveragePosition[i] < option.ColumnAllowedWidthVariance && option.ColumnAveragePosition[i]-*text.Left < option.ColumnAllowedWidthVariance {
-				entry.Content[i] = &PdfXmlTableEntryContent{
-					Text:     text.Text,
-					BoldText: text.BoldText,
-				}
+		column, err := option.GetColumnFunc(text)
+		if err != nil {
+			continue
+		}
 
-				// Check for min/max
-				if entry.MinLeft > *text.Left {
-					entry.MinLeft = *text.Left
-				}
-				if entry.MaxLeft < *text.Left {
-					entry.MaxLeft = *text.Left
-				}
-				if entry.MinTop > *text.Top {
-					entry.MinTop = *text.Top
-				}
-				if entry.MaxTop < *text.Top {
-					entry.MaxTop = *text.Top
-				}
+		entry.Content[column] = &PdfXmlTableEntryContent{
+			Text:     text.Text,
+			BoldText: text.BoldText,
+		}
 
-				break
-			}
+		// Check for min/max
+		if entry.MinLeft > *text.Left {
+			entry.MinLeft = *text.Left
+		}
+		if entry.MaxLeft < *text.Left {
+			entry.MaxLeft = *text.Left
+		}
+		if entry.MinTop > *text.Top {
+			entry.MinTop = *text.Top
+		}
+		if entry.MaxTop < *text.Top {
+			entry.MaxTop = *text.Top
 		}
 	}
 
@@ -160,6 +162,32 @@ func (p PdfXmlPage) ExtractTableContent(option PdfXmlTableOption) []*PdfXmlTable
 	}
 
 	return table
+}
+
+// Provides a function upon variances around starting points the column matching
+func GetColumnCalculationWithVariance(columnAveragePosition []int, allowedVariance int) func(text PdfXmlText) (int, error) {
+	rangeOptions := []GetColumnCalculationInRangesOption{}
+	for _, position := range columnAveragePosition {
+		rangeOptions = append(rangeOptions, GetColumnCalculationInRangesOption{
+			From: position - (allowedVariance / 2),
+			To:   position + (allowedVariance / 2),
+		})
+	}
+
+	return GetColumnCalculationInRanges(rangeOptions)
+}
+
+// Provides a function upon ranges around starting points the column matching
+func GetColumnCalculationInRanges(columnRanges []GetColumnCalculationInRangesOption) func(text PdfXmlText) (int, error) {
+	return func(text PdfXmlText) (int, error) {
+		for i, r := range columnRanges {
+			if *text.Left >= r.From && *text.Left <= r.To {
+				return i, nil
+			}
+		}
+
+		return -1, fmt.Errorf("cannot find correct column")
+	}
 }
 
 func (e PdfXmlTableEntry) isSameLine(text PdfXmlText, variance int) bool {
