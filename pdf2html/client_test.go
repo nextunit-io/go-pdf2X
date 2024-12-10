@@ -1,6 +1,7 @@
 package pdf2html_test
 
 import (
+	"encoding/xml"
 	"fmt"
 	"io"
 	"io/fs"
@@ -37,6 +38,145 @@ var (
 		string,
 	]
 )
+
+var xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pdf2xml SYSTEM "pdf2xml.dtd">
+
+<pdf2xml producer="poppler" version="24.11.0">
+<page number="1" position="absolute" top="0" left="0" height="1262" width="892">
+	<fontspec id="0" size="8" family="ArialMT" color="#000000"/>
+	<fontspec id="1" size="9" family="Arial" color="#AAAAAA"/>
+	<text top="452" left="106" width="227" height="19" font="0"><b>Test Bold</b></text>
+	<text top="471" left="106" width="188" height="19" font="0"><b>Test</b> mixed</text>
+	<text top="272" left="106" width="61" height="19" font="0">Only text</text>
+</page>
+<page number="2" position="absolute" top="0" left="0" height="1264" width="894">
+	<text top="452" left="106" width="227" height="19" font="0"><b>Test Bold</b> p2</text>
+	<text top="471" left="106" width="188" height="19" font="0"><b>Test</b> mixed p2</text>
+	<text top="272" left="106" width="61" height="19" font="0">Only text p2</text>
+</page>
+</pdf2xml>`
+
+var expectedXMLObj = pdf2html.PdfXmlData{
+	XMLName:  xml.Name{Local: "pdf2xml"},
+	Producer: pointerHelperFn("poppler"),
+	Version:  pointerHelperFn("24.11.0"),
+	Pages: []pdf2html.PdfXmlPage{
+		{
+			XMLName: xml.Name{
+				Local: "page",
+			},
+			PageNumber: pointerHelperFn(1),
+			Position:   pointerHelperFn("absolute"),
+			Top:        pointerHelperFn(0),
+			Left:       pointerHelperFn(0),
+			Width:      pointerHelperFn(892),
+			Height:     pointerHelperFn(1262),
+			FontSpecs: []pdf2html.PdfXmlFontSpec{
+				{
+					XMLName: xml.Name{
+						Local: "fontspec",
+					},
+					ID:     pointerHelperFn(0),
+					Size:   pointerHelperFn(8),
+					Family: pointerHelperFn("ArialMT"),
+					Color:  pointerHelperFn("#000000"),
+				},
+				{
+					XMLName: xml.Name{
+						Local: "fontspec",
+					},
+					ID:     pointerHelperFn(1),
+					Size:   pointerHelperFn(9),
+					Family: pointerHelperFn("Arial"),
+					Color:  pointerHelperFn("#AAAAAA"),
+				},
+			},
+			Texts: []pdf2html.PdfXmlText{
+				{
+					XMLName: xml.Name{
+						Local: "text",
+					},
+					Top:      pointerHelperFn(452),
+					Left:     pointerHelperFn(106),
+					Width:    pointerHelperFn(227),
+					Height:   pointerHelperFn(19),
+					Text:     pointerHelperFn(""),
+					BoldText: pointerHelperFn("Test Bold"),
+				},
+				{
+					XMLName: xml.Name{
+						Local: "text",
+					},
+					Top:      pointerHelperFn(471),
+					Left:     pointerHelperFn(106),
+					Width:    pointerHelperFn(188),
+					Height:   pointerHelperFn(19),
+					Text:     pointerHelperFn(" mixed"),
+					BoldText: pointerHelperFn("Test"),
+				},
+				{
+					XMLName: xml.Name{
+						Local: "text",
+					},
+					Top:      pointerHelperFn(272),
+					Left:     pointerHelperFn(106),
+					Width:    pointerHelperFn(61),
+					Height:   pointerHelperFn(19),
+					Text:     pointerHelperFn("Only text"),
+					BoldText: nil,
+				},
+			},
+		},
+		{
+			XMLName: xml.Name{
+				Local: "page",
+			},
+			PageNumber: pointerHelperFn(2),
+			Position:   pointerHelperFn("absolute"),
+			Top:        pointerHelperFn(0),
+			Left:       pointerHelperFn(0),
+			Width:      pointerHelperFn(894),
+			Height:     pointerHelperFn(1264),
+
+			Texts: []pdf2html.PdfXmlText{
+				{
+					XMLName: xml.Name{
+						Local: "text",
+					},
+					Top:      pointerHelperFn(452),
+					Left:     pointerHelperFn(106),
+					Width:    pointerHelperFn(227),
+					Height:   pointerHelperFn(19),
+					Text:     pointerHelperFn(" p2"),
+					BoldText: pointerHelperFn("Test Bold"),
+				},
+				{
+					XMLName: xml.Name{
+						Local: "text",
+					},
+					Top:      pointerHelperFn(471),
+					Left:     pointerHelperFn(106),
+					Width:    pointerHelperFn(188),
+					Height:   pointerHelperFn(19),
+					Text:     pointerHelperFn(" mixed p2"),
+					BoldText: pointerHelperFn("Test"),
+				},
+				{
+					XMLName: xml.Name{
+						Local: "text",
+					},
+					Top:      pointerHelperFn(272),
+					Left:     pointerHelperFn(106),
+					Width:    pointerHelperFn(61),
+					Height:   pointerHelperFn(19),
+					Text:     pointerHelperFn("Only text p2"),
+					BoldText: nil,
+				},
+			},
+		},
+	},
+}
 
 type testVersionWrapper struct{}
 
@@ -131,6 +271,12 @@ func setupTests() {
 	osMock.Mock.Remove.SetAlwaysReturn(false)
 
 	setupInitialVersion()
+}
+
+func setupXmlTests() {
+	setupTests()
+	osMock.Mock.ReadFile.Reset()
+	osMock.Mock.ReadFile.AddReturnValue(pointerHelperFn([]byte(xmlContent)))
 }
 
 func setupInitialVersion() {
@@ -391,7 +537,8 @@ func TestGetXml(t *testing.T) {
 	t.Helper()
 
 	t.Run("Check for successful GetXML", func(t *testing.T) {
-		setupTests()
+		setupXmlTests()
+
 		client, _ := pdf2html.NewClient()
 
 		fn := func(cmd []string) (*string, *string, error) {
@@ -402,7 +549,7 @@ func TestGetXml(t *testing.T) {
 		o, err := client.GetXML("filename", pdf2html.Options{})
 
 		assert.Nil(t, err)
-		assert.Equal(t, "test-read-file", *o)
+		assert.Equal(t, expectedXMLObj, *o)
 		assert.Equal(t, []string{"pdftohtml", "-xml", "filename", "test-mkdir-tmpdir"}, wrapperFnMock.GetLastInput().Cmd.Args)
 
 		assert.Equal(t, 1, osMock.Mock.TempDir.HasBeenCalled())
@@ -426,7 +573,7 @@ func TestGetXml(t *testing.T) {
 	})
 
 	t.Run("Check cleanup cannot find HTML files", func(t *testing.T) {
-		setupTests()
+		setupXmlTests()
 		client, _ := pdf2html.NewClient()
 
 		osMock.Mock.Stat.Reset()
@@ -441,7 +588,7 @@ func TestGetXml(t *testing.T) {
 		runMock.AddReturnValue(&fn)
 		o, err := client.GetXML("filename", pdf2html.Options{})
 		assert.Nil(t, err)
-		assert.Equal(t, "test-read-file", *o)
+		assert.Equal(t, expectedXMLObj, *o)
 
 		assert.Equal(t, 1, osMock.Mock.TempDir.HasBeenCalled())
 		assert.Equal(t, 1, osMock.Mock.MkdirTemp.HasBeenCalled())
@@ -454,7 +601,7 @@ func TestGetXml(t *testing.T) {
 	})
 
 	t.Run("Check cleanup cannot find files at all", func(t *testing.T) {
-		setupTests()
+		setupXmlTests()
 		client, _ := pdf2html.NewClient()
 
 		osMock.Mock.Stat.Reset()
@@ -466,7 +613,7 @@ func TestGetXml(t *testing.T) {
 		runMock.AddReturnValue(&fn)
 		o, err := client.GetXML("filename", pdf2html.Options{})
 		assert.Nil(t, err)
-		assert.Equal(t, "test-read-file", *o)
+		assert.Equal(t, expectedXMLObj, *o)
 
 		assert.Equal(t, 1, osMock.Mock.TempDir.HasBeenCalled())
 		assert.Equal(t, 1, osMock.Mock.MkdirTemp.HasBeenCalled())
@@ -477,7 +624,7 @@ func TestGetXml(t *testing.T) {
 	})
 
 	t.Run("Check removeall should not let the process fail", func(t *testing.T) {
-		setupTests()
+		setupXmlTests()
 		client, _ := pdf2html.NewClient()
 
 		osMock.Mock.RemoveAll.Reset()
@@ -489,7 +636,7 @@ func TestGetXml(t *testing.T) {
 		runMock.AddReturnValue(&fn)
 		o, err := client.GetXML("filename", pdf2html.Options{})
 		assert.Nil(t, err)
-		assert.Equal(t, "test-read-file", *o)
+		assert.Equal(t, expectedXMLObj, *o)
 
 		assert.Equal(t, 1, osMock.Mock.TempDir.HasBeenCalled())
 		assert.Equal(t, 1, osMock.Mock.MkdirTemp.HasBeenCalled())
@@ -500,7 +647,7 @@ func TestGetXml(t *testing.T) {
 	})
 
 	t.Run("Cleanup failes (XML)", func(t *testing.T) {
-		setupTests()
+		setupXmlTests()
 		client, _ := pdf2html.NewClient()
 
 		osMock.Mock.Remove.Reset()
@@ -523,7 +670,7 @@ func TestGetXml(t *testing.T) {
 	})
 
 	t.Run("Cleanup failes (HTML)", func(t *testing.T) {
-		setupTests()
+		setupXmlTests()
 		client, _ := pdf2html.NewClient()
 
 		osMock.Mock.Remove.Reset()
@@ -547,7 +694,7 @@ func TestGetXml(t *testing.T) {
 	})
 
 	t.Run("Readfile failes", func(t *testing.T) {
-		setupTests()
+		setupXmlTests()
 		client, _ := pdf2html.NewClient()
 
 		osMock.Mock.ReadFile.Reset()
@@ -570,7 +717,7 @@ func TestGetXml(t *testing.T) {
 	})
 
 	t.Run("Get fails", func(t *testing.T) {
-		setupTests()
+		setupXmlTests()
 		client, _ := pdf2html.NewClient()
 
 		osMock.Mock.ReadFile.Reset()
@@ -593,7 +740,7 @@ func TestGetXml(t *testing.T) {
 	})
 
 	t.Run("Error on tmp dir", func(t *testing.T) {
-		setupTests()
+		setupXmlTests()
 		client, _ := pdf2html.NewClient()
 
 		osMock.Mock.MkdirTemp.Reset()

@@ -2,6 +2,7 @@ package pdf2html
 
 import (
 	"bytes"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"os/exec"
@@ -142,7 +143,7 @@ func cleanup(output *Output) error {
 	return nil
 }
 
-func (c Client) GetXML(filePath string, options Options) (*string, error) {
+func (c Client) GetXML(filePath string, options Options) (*PdfXmlData, error) {
 	dir, err := tools.GetOsInstance().MkdirTemp(tools.GetOsInstance().TempDir(), fmt.Sprintf("%s-*", strings.ReplaceAll(filePath, "/", "_")))
 
 	if err != nil {
@@ -171,9 +172,14 @@ func (c Client) GetXML(filePath string, options Options) (*string, error) {
 		return nil, err
 	}
 
-	contentString := string(content)
+	var data PdfXmlData
+	err = xml.Unmarshal([]byte(content), &data)
 
-	return &contentString, nil
+	if err != nil {
+		return nil, err
+	}
+
+	return &data, nil
 }
 
 func (c Client) GetHTML(filePath string, options Options) (*string, error) {
