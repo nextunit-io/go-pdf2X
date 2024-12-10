@@ -42,13 +42,13 @@ var (
 			},
 			{
 				Top:      pointerHelperFn(115),
-				Left:     pointerHelperFn(99),
+				Left:     pointerHelperFn(91),
 				Text:     pointerHelperFn("2 row - 1 column"),
 				BoldText: pointerHelperFn("test-text-bold"),
 			},
 			{
 				Top:      pointerHelperFn(115),
-				Left:     pointerHelperFn(202),
+				Left:     pointerHelperFn(209),
 				Text:     pointerHelperFn("2 row - 2 column"),
 				BoldText: pointerHelperFn("test-text-bold"),
 			},
@@ -120,7 +120,7 @@ var (
 			},
 		},
 		{
-			MinLeft: 50,
+			MinLeft: 91,
 			MaxLeft: 403,
 			MinTop:  115,
 			MaxTop:  115,

@@ -2,6 +2,7 @@ package pdf2html
 
 import (
 	"encoding/xml"
+	"fmt"
 	"sort"
 )
 
@@ -74,6 +75,8 @@ type PdfXmlTableEntryContent struct {
 	BoldText *string // surrounded with <b> tags text
 }
 
+const maxInt int = int(^uint(0) >> 1)
+
 // Extracts the table content upon a give configuration for the table
 func (p PdfXmlPage) ExtractTableContent(option PdfXmlTableOption) []*PdfXmlTableEntry {
 	texts := p.getSortedTexts(option.From, option.To)
@@ -85,10 +88,10 @@ func (p PdfXmlPage) ExtractTableContent(option PdfXmlTableOption) []*PdfXmlTable
 			entry = &PdfXmlTableEntry{
 				top: *text.Top,
 
-				MinLeft: *text.Left,
-				MaxLeft: *text.Left,
-				MinTop:  *text.Top,
-				MaxTop:  *text.Top,
+				MinLeft: maxInt,
+				MaxLeft: 0,
+				MinTop:  maxInt,
+				MaxTop:  0,
 
 				Content: make([]*PdfXmlTableEntryContent, option.Columns),
 			}
@@ -116,7 +119,8 @@ func (p PdfXmlPage) ExtractTableContent(option PdfXmlTableOption) []*PdfXmlTable
 		}
 
 		for i := 0; i < option.Columns; i++ {
-			if *text.Left-option.ColumnAveragePosition[i] < option.AllowedHeightVariance && option.ColumnAveragePosition[i]-*text.Left < option.AllowedHeightVariance {
+			fmt.Println(*text.Left, *text.Text)
+			if *text.Left-option.ColumnAveragePosition[i] < option.ColumnAllowedWidthVariance && option.ColumnAveragePosition[i]-*text.Left < option.ColumnAllowedWidthVariance {
 				entry.Content[i] = &PdfXmlTableEntryContent{
 					Text:     text.Text,
 					BoldText: text.BoldText,
