@@ -2,7 +2,6 @@ package pdf2html
 
 import (
 	"encoding/xml"
-	"fmt"
 	"sort"
 )
 
@@ -119,7 +118,6 @@ func (p PdfXmlPage) ExtractTableContent(option PdfXmlTableOption) []*PdfXmlTable
 		}
 
 		for i := 0; i < option.Columns; i++ {
-			fmt.Println(*text.Left, *text.Text)
 			if *text.Left-option.ColumnAveragePosition[i] < option.ColumnAllowedWidthVariance && option.ColumnAveragePosition[i]-*text.Left < option.ColumnAllowedWidthVariance {
 				entry.Content[i] = &PdfXmlTableEntryContent{
 					Text:     text.Text,
