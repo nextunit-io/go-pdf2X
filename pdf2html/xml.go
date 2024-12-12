@@ -11,14 +11,15 @@ type PdfXmlData struct {
 	Producer *string  `xml:"producer,attr,omitempty"`
 	Version  *string  `xml:"version,attr,omitempty"`
 
-	Pages   []PdfXmlPage  `xml:"page"`
-	Outline PdfXmlOutline `xml:"outline"`
+	Pages    []PdfXmlPage    `xml:"page,omitempty"`
+	Outlines []PdfXmlOutline `xml:"outline,omitempty"`
 }
 
 type PdfXmlOutline struct {
 	XMLName xml.Name `xml:"outline"`
 
-	Items []PdfXmlOutlineItem `xml:"item"`
+	Items    []PdfXmlOutlineItem `xml:"item,omitempty"`
+	Outlines []PdfXmlOutline     `xml:"outline,omitempty"`
 }
 
 type PdfXmlOutlineItem struct {
